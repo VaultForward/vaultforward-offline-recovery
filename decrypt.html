@@ -1,53 +1,321 @@
-# VaultForward.io — Open-Source Offline Decryption Utility
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VaultForward.io — Open-Source Offline Decryption Utility</title>
+    <style>
+        /* ==========================================================================
+           CORE DESIGN THEME
+           ========================================================================== */
+        :root {
+            --bg-main: #182338;
+            --bg-input: #1F2A3F;
+            --border-subtle: #2A3B59;
+            --primary: #3B82F6;
+            --primary-hover: #2563EB;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --danger: #EF4444;
+        }
 
-[![License: MIT](https://shields.io)](https://opensource.org)
-[![Security: Zero-Knowledge](https://shields.io)](#cryptographic-architecture)
-[![Crypto: AES-GCM-256](https://shields.io)](#cryptographic-architecture)
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-This repository contains the standalone, open-source **Offline Decryption Utility** for [VaultForward.io](https://yggdrasel.com). 
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-VaultForward is a zero-knowledge digital estate planning and dead man's switch infrastructure. In compliance with strict mathematical data sovereignty, our core principle is that **we never know, store, or transmit your master keys or plaintexts**. 
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 40px;
+        }
 
-This completely self-contained HTML/JS file allows designated beneficiaries (recipients) to fully decrypt a released secure payload block locally on an air-gapped machine without ever pinging a remote server.
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            justify-content: center;
+        }
 
----
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
 
-## 🔒 Cryptographic Architecture
+        .logo-text2 {
+            font-size: 30px;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            padding: 0;
+            margin: 0;
+            color: #D2D4D9;
+        }
 
-The utility utilizes the browser's native Web Crypto API (`crypto.subtle`) for highly optimized, memory-isolated runtime operations. 
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+            letter-spacing: -0.01em;
+        }
 
-Använd koden med försiktighet.[Encrypted Payload Block]+[Owner's Email (Salt)]     --->  [600,000 PBKDF2 Iterations] ---> [Derived AES-GCM Key] ---> [Plaintext Output]+[Beneficiary Access Key]
-### Protocol Specifications:
-* **Key Derivation (KDF):** PBKDF2 (Password-Based Key Derivation Function 2) running a high-security threshold of **600,000 iterations** using an HMAC-SHA-256 digest wrapper.
-* **Cryptographic Salting:** The derivation mechanism binds the cryptographic domain by appending the user’s original structural email directly to the database-generated randomized 32-character hexadecimal salt string (`email + hex_salt`).
-* **Symmetric Encryption:** Core content decryption executes via **AES-GCM (Advanced Encryption Standard - Galois/Counter Mode)** featuring an authenticated 256-bit bitlength and unique 12-byte initialization vectors (IVs).
+        .section-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 30px;
+            text-align: center;
+        }
 
----
+        .badge {
+            display: inline-block;
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
 
-## 🚀 How to Run 100% Offline
+        .badge-container {
+            text-align: center;
+        }
 
-To ensure complete isolation from remote telemetry, network snooping, or active server dependence, follow these verification steps:
+        /* Form Components */
+        .form-group {
+            margin-bottom: 20px;
+        }
 
-1. **Download the Utility:** Download the standalone `decrypt.html` file from this repository to your machine.
-2. **Air-Gap the Environment:** Physically disconnect your computer from the internet (turn off Wi-Fi, unplug Ethernet).
-3. **Execute Locally:** Double-click `decrypt.html` to open it in any modern, secure browser (Chrome, Firefox, Brave, Safari).
-4. **Input Credentials:**
-   * Paste the opaque **Encrypted Payload Block** (received via the triggered beneficiary notification dispatch).
-   * Enter the **Vault Owner's Original Email Address** (used as the immutable mathematical salt constraint).
-   * Provide your unique offline **Beneficiary Access Key**.
-5. **Decrypt:** Click **Execute Client-Side Decryption**. The browser will derive the ephemeral key entirely in volatile RAM, decrypt the buffer, and render the underlying data block locally.
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
 
----
+        .form-group input, 
+        .form-group textarea {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s ease-in-out;
+        }
 
-## 🕵️‍♂️ Audit the Source
+        .form-group input:focus, 
+        .form-group textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
 
-We heavily encourage peer review and technical auditing. The mathematical integrity of the zero-knowledge model means that if a single character of the passphrase, payload block, or email salt is modified or typed incorrectly, the cipher puzzle breaks and outputs a cryptographic failure—proving no backdoor or master recovery mechanism physically exists.
+        .btn-primary {
+            width: 100%;
+            background-color: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            margin-bottom: 25px;
+        }
 
-Review the embedded cryptographic script inside `decrypt.html` to inspect:
-* Binary stream translation via `TextEncoder()` and `TextDecoder()`.
-* Key import structures using `crypto.subtle.importKey`.
-* Bitlength constraints and Galois counter integrity metrics during `crypto.subtle.decrypt`.
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
 
-## 📄 License
+        /* Output Box Architecture */
+        .output-panel {
+            background-color: var(--bg-main);
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 10px;
+            display: none; /* Displayed dynamically upon successful decryption */
+        }
 
-This utility is entirely open-source and released under the [MIT License](
+        .output-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .cleartext-box {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            padding: 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="brand">
+            <span class="logo-text">Vault<span class="logo-text2">Forward</span></span>
+        </div>
+        
+        <div class="badge-container">
+            <span class="badge">🚀 100% OFFLINE RECOVERY UTILITY</span>
+        </div>
+
+        <h1 class="section-title">Decrypt Secure Digital Estate Bundle</h1>
+        <p class="section-desc">
+            This tool runs entirely in your local browser memory. You can safely disconnect your internet before proceeding. No data is ever transmitted back to any servers.
+        </p>
+
+        <form id="form-offline-decrypt">
+            <!-- 1. THE ENCRYPTED CIPHERTEXT BLOCK FROM EMAIL -->
+            <div class="form-group">
+                <label for="input-ciphertext">Encrypted Payload Block (From Email)</label>
+                <textarea id="input-ciphertext" rows="5" placeholder="Paste the encrypted block string here..." required></textarea>
+            </div>
+
+            <!-- 2. THE OWNER'S EMAIL ACTING AS THE PBKDF2 DOMAIN SALT CONSTRAINT -->
+            <div class="form-group">
+                <label for="input-salt-email">Vault Owner's Original Email Address</label>
+                <input type="email" id="input-salt-email" placeholder="owner-account@domain.com" required>
+            </div>
+
+            <!-- 3. THE SECRET ACCESS KEY GIVEN TO THE BENEFICIARY OFFLINE -->
+            <div class="form-group">
+                <label for="input-passphrase">Offline Beneficiary Passphrase</label>
+                <input type="password" id="input-passphrase" placeholder="Enter the secret offline access key" required>
+            </div>
+
+            <button type="submit" class="btn-primary">Execute Client-Side Decryption</button>
+        </form>
+
+        <!-- SECURE OUTPUT DISPLAY AREA -->
+        <div id="output-panel" class="output-panel">
+            <div class="output-header">🔓 Secure Payload Successfully Decrypted</div>
+            <div id="cleartext-box" class="cleartext-box"></div>
+        </div>
+
+        <footer>
+            Open Source & MIT Licensed • Verified RAM Isolation Architecture
+        </footer>
+    </div>
+
+    <!-- ==========================================================================
+       PURE CLIENT-SIDE CRYPTO ENGINE (WEB CRYPTO API / SUBTLECRYPTO)
+       ========================================================================== -->
+    <script>
+        document.getElementById('form-offline-decrypt').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const ciphertextVal = document.getElementById('input-ciphertext').value.trim();
+            const emailVal = document.getElementById('input-salt-email').value.toLowerCase().trim();
+            const passphraseVal = document.getElementById('input-passphrase').value;
+            const outputPanel = document.getElementById('output-panel');
+            const cleartextBox = document.getElementById('cleartext-box');
+
+            try {
+                // Clear and hide previous decryption results before processing
+                outputPanel.style.display = 'none';
+
+                // ==========================================================================
+                // 1. EXTRACT AND PARSE THE ENCRYPTED DATA BUNDLE (BASE64 + JSON)
+                // ==========================================================================
+                // Decode the outer Base64 layer to expose the architectural JSON bundle string
+                const rawJsonStr = atob(ciphertextVal);
+                const payloadBundle = JSON.parse(rawJsonStr);
+
+                if (!payloadBundle.ciphertext || !payloadBundle.iv || !payloadBundle.salt) {
+                    throw new Error("Invalid payload block format structure.");
+                }
+
+                // Map the hexadecimal salt and initialization vector (IV) strings into typed Uint8Arrays
+                const saltBytes = new Uint8Array(payloadBundle.salt.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const ivBytes = new Uint8Array(payloadBundle.iv.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                
+                // Parse the base64-encoded encrypted content payload back into a binary stream array
+                const encryptedBinary = atob(payloadBundle.ciphertext);
+                const encryptedBytes = new Uint8Array(encryptedBinary.length);
+                for (let i = 0; i < encryptedBinary.length; i++) {
+                    encryptedBytes[i] = encryptedBinary.charCodeAt(i);
+                }
+
+                // ==========================================================================
+                // 2. CLIENT-SIDE KEY DERIVATION FLUX (600,000 PBKDF2 ITERATIONS)
+                // ==========================================================================
+                const enc = new TextEncoder();
+                const baseKey = await crypto.subtle.importKey("raw",enc.encode(passphraseVal),{ name: "PBKDF2" },false,["deriveKey"]);
+                // Re-bind the user's specific email constraint to the cryptographic salt mapping
+                const finalSaltBytes = enc.encode(emailVal + payloadBundle.salt);
+                // Derive the strong ephemeral symmetric key entirely inside runtime RAM isolation
+                const derivedKey = await crypto.subtle.deriveKey(
+                    {
+                        name: "PBKDF2",
+                        salt: finalSaltBytes,
+                        iterations: 600000,
+                        hash: "SHA-256"
+                    },
+                    baseKey,
+                    { name: "AES-GCM", length: 256 },
+                    false,
+                    ["decrypt"]
+                );
+                // ==========================================================================
+                // 3. CRYPTOGRAPHIC SYMMETRIC BUFFER DECRYPTION LIVE IN VOLATILE MEMORY
+                // ==========================================================================
+                const decryptedBuffer = await crypto.subtle.decrypt({name: "AES-GCM",iv: ivBytes},derivedKey,encryptedBytes);
+                const dec = new TextDecoder();const cleartextResult = dec.decode(decryptedBuffer);
+                // ==========================================================================
+                // 4. UNVEIL THE DECRYPTED PLAINSTEXT DATA SAFELY ON SCREEN
+                // ==========================================================================
+                cleartextBox.innerText = cleartextResult;
+                outputPanel.style.display = 'block';
+                // Perform a smooth scrolling action to draw focus to the decrypted clearance panelout
+                outputPanel.scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                console.error("Critical Client-Side Decryption Failure:", err);
+                alert("Decryption Failed! Ensure the Payload Block, Email, and Access Key are 100% correct. If the email salt configuration or passphrase is off by a single character, evaluation will mathematically collapse.");
+            }
+        });
+</script>
+</body>
+</html>
